@@ -79,7 +79,7 @@ export const subscription = pgTable("subscription", {
 
 /* Webhook idempotency */
 export const stripeEvent = pgTable("stripe_event", {
-  id: text("id").primaryKey(), // Stripe event.id
+  id: text("id").primaryKey(),
   type: text("type").notNull(),
   processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),
   payload: jsonb("payload").notNull(),
@@ -97,7 +97,19 @@ export const todo = pgTable("todo", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/* ─────────── Canary Lead Intake ─────────── */
+
+export const canaryLead = pgTable("canary_leads", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  company: text("company"),
+  message: text("message"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Subscription = typeof subscription.$inferSelect;
 export type Todo = typeof todo.$inferSelect;
+export type CanaryLead = typeof canaryLead.$inferSelect;
