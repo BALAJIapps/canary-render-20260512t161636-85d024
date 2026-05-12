@@ -23,19 +23,18 @@ function detectProvider(): StorageProvider {
 
 // ── Helpers ───────────────────────────────────────────────────────
 
-/** Convert a Buffer to a Blob without triggering TS strict BlobPart errors. */
-function toBlob(file: File | Buffer, contentType: string): Blob {
-  if (file instanceof Buffer) {
-    // Use Uint8Array — always a valid BlobPart in strict TS
-    return new Blob([new Uint8Array(file)], { type: contentType });
-  }
-  return file;
+/** Always produce a Blob — works for both Buffer and File in strict TS. */
+async function toBlob(file: File | Buffer, contentType: string): Promise<Blob> {
+  const bytes = file instanceof Buffer
+    ? new Uint8Array(file)
+    : new Uint8Array(await (file as File).arrayBuffer());
+  return new Blob([bytes], { type: contentType });
 }
 
 /** Get a Uint8Array body for fetch from File | Buffer. */
 async function toBytes(file: File | Buffer): Promise<Uint8Array> {
   if (file instanceof Buffer) return new Uint8Array(file);
-  return new Uint8Array(await file.arrayBuffer());
+  return new Uint8Array(await (file as File).arrayBuffer());
 }
 
 // ── Unified interface ─────────────────────────────────────────────
@@ -90,7 +89,7 @@ async function uploadToUploadthing(
   if (!secret) throw new Error("UPLOADTHING_SECRET not set");
 
   const contentType = options?.contentType ?? "application/octet-stream";
-  const blob: Blob = toBlob(file, contentType);
+  const blob = await toBlob(file, contentType);
 
   const formData = new FormData();
   formData.append("file", blob, filename);
